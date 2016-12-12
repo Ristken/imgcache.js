@@ -417,16 +417,17 @@ var ImgCache = {
         }
         this.filesystem = filesystem;    // only useful for CHROME
     };
-    Private.FileTransferWrapper.prototype.download = function (uri, localPath, success_callback, error_callback, on_progress) {
+    Private.FileTransferWrapper.prototype.download = function (reqOrURI, localPath, success_callback, error_callback, on_progress) {
 
-        var headers = ImgCache.options.headers || {};
+        var uri = (typeof reqOrURI === 'string' || reqOrURI instanceof String) ? reqOrURI : reqOrURI.url;
+        var headers = Object.assign({}, ImgCache.options.headers, reqOrURI.headers);
         var isOnProgressAvailable = (typeof on_progress === 'function');
 
         if (this.fileTransfer) {
             if (isOnProgressAvailable) {
                 this.fileTransfer.onprogress = on_progress;
             }
-            return this.fileTransfer.download(uri, localPath, success_callback, error_callback, false, { 'headers': headers });
+            return this.fileTransfer.download(req, localPath, success_callback, error_callback, false, { 'headers': headers });
         }
 
         var filesystem = this.filesystem;
@@ -626,7 +627,9 @@ var ImgCache = {
 
     // this function will not check if the image is already cached or not => it will overwrite existing data
     // on_progress callback follows this spec: http://www.w3.org/TR/2014/REC-progress-events-20140211/ -- see #54
-    ImgCache.cacheFile = function (img_src, success_callback, error_callback, on_progress) {
+    ImgCache.cacheFile = function (reqOrURI, success_callback, error_callback, on_progress) {
+
+        var img_src = (typeof reqOrURI === 'string' || reqOrURI instanceof String) ? reqOrURI : reqOrURI.url;
 
         if (!Private.isImgCacheLoaded() || !img_src) {
             return;
@@ -638,7 +641,7 @@ var ImgCache = {
 
         var fileTransfer = new Private.FileTransferWrapper(ImgCache.attributes.filesystem);
         fileTransfer.download(
-            img_src,
+            reqOrURI,
             filePath,
             function (entry) {
                 entry.getMetadata(function (metadata) {
