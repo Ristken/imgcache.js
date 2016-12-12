@@ -427,7 +427,7 @@ var ImgCache = {
             if (isOnProgressAvailable) {
                 this.fileTransfer.onprogress = on_progress;
             }
-            return this.fileTransfer.download(req, localPath, success_callback, error_callback, false, { 'headers': headers });
+            return this.fileTransfer.download(uri, localPath, success_callback, error_callback, false, { 'headers': headers });
         }
 
         var filesystem = this.filesystem;
